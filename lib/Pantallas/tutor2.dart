@@ -1,14 +1,13 @@
 // archivo: tutor2.dart
-import 'package:app_prueba/Pantallas/bienvenido.dart';
 import 'package:flutter/material.dart';
-import 'package:app_prueba/Pantallas/tutor3.dart'; //  Importa la siguiente pantalla
+import 'bienvenido.dart';               // mismo folder
+import 'configuracion_tutor.dart';      // mismo folder
 
 class Tutor2 extends StatefulWidget {
   const Tutor2({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _Tutor2State createState() => _Tutor2State();
+  State<Tutor2> createState() => _Tutor2State();
 }
 
 class _Tutor2State extends State<Tutor2> {
@@ -25,11 +24,11 @@ class _Tutor2State extends State<Tutor2> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Título arriba
+                  // Título
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30.0),
                     child: Text(
-                      'Configura tus Alertas para Estar Siempre Atento',
+                      'Ubicación en tiempo real',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 24,
@@ -45,8 +44,8 @@ class _Tutor2State extends State<Tutor2> {
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        width: 370,
-                        height: 370,
+                        width: 300,
+                        height: 300,
                         decoration: const BoxDecoration(
                           image: DecorationImage(
                             image: AssetImage('assets/images/tutor_fondo2.png'),
@@ -56,8 +55,8 @@ class _Tutor2State extends State<Tutor2> {
                       ),
                       Image.asset(
                         'assets/images/tutor2.png',
-                        width: 490,
-                        height: 490,
+                        width: 350,
+                        height: 350,
                         fit: BoxFit.contain,
                       ),
                     ],
@@ -68,8 +67,9 @@ class _Tutor2State extends State<Tutor2> {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30.0),
                     child: Text(
-                      'Personaliza cómo deseas recibir las notificaciones: por sonido, vibración o mensajes directos'
-                      'Ajusta las alertas según tus preferencias y mantente siempre informado sobre la seguridad y el entorno del usuario.',                    textAlign: TextAlign.center,
+                      'Como contacto de emergencia, podrás ver en el mapa dónde está la '
+                      'persona con discapacidad visual y su último punto conocido.',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.black87,
@@ -80,7 +80,7 @@ class _Tutor2State extends State<Tutor2> {
               ),
             ),
 
-            // Parte inferior con Omitir y Siguiente
+            // Inferior: Omitir / Empezar ya
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
               child: Row(
@@ -97,20 +97,19 @@ class _Tutor2State extends State<Tutor2> {
                     child: const Text(
                       'Omitir',
                       style: TextStyle(
-                        color: turquesa,
+                        color: Color(0xFF2EB79B),
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-
-                  // Siguiente
+                  // Empezar ya → ConfiguracionTutor
                   ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const Tutor3(), // 👈 Cambiado aquí
+                          builder: (context) => const ConfiguracionTutor(),
                         ),
                       );
                     },
@@ -124,7 +123,7 @@ class _Tutor2State extends State<Tutor2> {
                     ),
                     icon: const Icon(Icons.arrow_forward, color: Colors.white),
                     label: const Text(
-                      'Siguiente',
+                      'Empezar ya',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

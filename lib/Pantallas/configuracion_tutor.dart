@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'cuenta_tutor.dart';              // 👉 Pantalla de Cuenta del tutor
-import 'mapa_screen.dart';              // 👉 Pantalla de Mapa
-import 'configuracion_avanzada.dart';   // 👉 NUEVO: pantalla Configuración Avanzada
+import 'cuenta_tutor.dart';
+import 'mapa_screen.dart';
 
 class ConfiguracionTutor extends StatefulWidget {
   const ConfiguracionTutor({super.key});
@@ -11,12 +10,11 @@ class ConfiguracionTutor extends StatefulWidget {
 }
 
 class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
-  int _selectedIndex = 0; // índice inicial válido
+  int _selectedIndex = 0;
+  bool _isDark = false; // ← modo oscuro local
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
 
     // Cuenta
     if (index == 0) {
@@ -33,117 +31,166 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
         MaterialPageRoute(builder: (context) => MapaScreen()),
       );
     }
-
-    // Config (básica) -> aquí puedes agregar algo si luego lo necesitas
-    if (index == 2) {}
-
-    // NUEVO: Configuración Avanzada
-    if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ConfiguracionAvanzada()),
-      );
-    }
+    // Config (index == 2) -> sin navegación por ahora
   }
 
   @override
   Widget build(BuildContext context) {
+    // Colores dependientes del modo
+    final Color bg = _isDark ? const Color(0xFF121212) : Colors.white;
+    final Color text = _isDark ? Colors.white : Colors.black87;
+    final Color icon = _isDark ? Colors.white : Colors.black;
+    final Color divider = _isDark ? Colors.white24 : Colors.black12;
+    const Color primary = Color(0xFF2EB79B);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bg,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Align(
-              alignment: Alignment.topRight,
+            // Botón de luna/sol arriba-derecha
+            Positioned(
+              top: 0,
+              right: 0,
               child: IconButton(
-                onPressed: () {
-                  // Lógica para el ícono de luna (opcional)
-                },
-                icon: const Icon(Icons.nightlight_round,
-                    color: Colors.black, size: 28),
+                onPressed: () => setState(() => _isDark = !_isDark),
+                icon: Icon(
+                  _isDark ? Icons.light_mode : Icons.nightlight_round,
+                  color: icon,
+                  size: 28,
+                ),
+                tooltip: _isDark ? 'Modo claro' : 'Modo oscuro',
               ),
             ),
-            const SizedBox(height: 10),
-            const Text(
-              "Configuración Tutor",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 20),
+
+            // Contenido principal centrado
             Center(
-              child: Image.asset(
-                "assets/images/configuracion.png", // engranaje
-                width: 180,
-                height: 180,
-                fit: BoxFit.contain,
-              ),
-            ),
-            const SizedBox(height: 30),
-            Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    title: const Text(
-                      "Cuenta",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 24,
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const CuentaTutor()),
-                      );
-                    },
-                  ),
-                  const Divider(height: 1),
-                  const ListTile(
-                    title: Text(
-                      "Lenguaje",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 8),
+                        Text(
+                          "Configuración Tutor",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: text,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: Image.asset(
+                            "assets/images/configuracion.png",
+                            width: 180,
+                            height: 180,
+                            fit: BoxFit.contain,
+                            // Evita crash si el asset no existe
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.settings,
+                              size: 120,
+                              color: _isDark ? Colors.white24 : Colors.black26,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 26),
+
+                        // Lista centrada (sin tarjetas/cuadrados)
+                        ListView(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            ListTile(
+                              title: Text(
+                                "Cuenta",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: text,
+                                ),
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios,
+                                size: 18,
+                                color: text,
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const CuentaTutor(),
+                                  ),
+                                );
+                              },
+                            ),
+                            Divider(height: 1, color: divider),
+                            ListTile(
+                              title: Text(
+                                "Lenguaje",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: text,
+                                ),
+                              ),
+                              trailing: Icon(Icons.arrow_forward_ios,
+                                  size: 18, color: text),
+                            ),
+                            Divider(height: 1, color: divider),
+                            ListTile(
+                              title: Text(
+                                "Ayuda y soporte",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: text,
+                                ),
+                              ),
+                              trailing: Icon(Icons.arrow_forward_ios,
+                                  size: 18, color: text),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+                      ],
                     ),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 18),
                   ),
-                  const Divider(height: 1),
-                  const ListTile(
-                    title: Text(
-                      "Ayuda y soporte",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 18),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
         ),
       ),
+      // Barra inferior con colores adecuados al tema local
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: bg,
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: const Color(0xFF2EB79B),
-        unselectedItemColor: Colors.black54,
+        selectedItemColor: primary,
+        unselectedItemColor: _isDark ? Colors.white70 : Colors.black54,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),   // Cuenta
+            icon: Icon(Icons.person),
             label: "Cuenta",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map),      // Mapa
+            icon: Icon(Icons.map),
             label: "Mapa",
-            tooltip: "Abrir mapa (Google Maps)",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings), // Config básica
+            icon: Icon(Icons.settings),
             label: "Config",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.tune),     // NUEVO: Config Avanzada
-            label: "Config Avanzada",
-            tooltip: "Abrir Configuración Avanzada",
           ),
         ],
       ),

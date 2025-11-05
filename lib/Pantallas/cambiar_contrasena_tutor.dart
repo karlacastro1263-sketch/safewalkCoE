@@ -11,11 +11,13 @@ class CambiarContrasenaTutor extends StatefulWidget {
 
 class _CambiarContrasenaTutorState extends State<CambiarContrasenaTutor> {
   final TextEditingController _passwordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _cambiarContrasena() async {
     final pass = _passwordController.text.trim();
+
     if (pass.isEmpty) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor ingresa una nueva contraseña.')),
       );
@@ -24,24 +26,31 @@ class _CambiarContrasenaTutorState extends State<CambiarContrasenaTutor> {
 
     try {
       final user = _auth.currentUser;
-      if (user != null) {
-        await user.updatePassword(pass);
-        // ignore: use_build_context_synchronously
+      if (user == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Contraseña cambiada exitosamente')),
+          const SnackBar(content: Text('No hay sesión activa.')),
         );
-        Navigator.pushReplacement(
-          // ignore: use_build_context_synchronously
-          context,
-          MaterialPageRoute(builder: (_) => const CuentaTutor()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo cambiar la contraseña.')),
-        );
+        return;
       }
+
+      await user.updatePassword(pass);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Contraseña cambiada exitosamente')),
+      );
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const CuentaTutor()),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error de autenticación: ${e.message ?? e.code}')),
+      );
     } catch (e) {
-      // ignore: use_build_context_synchronously
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
@@ -58,14 +67,14 @@ class _CambiarContrasenaTutorState extends State<CambiarContrasenaTutor> {
   Widget build(BuildContext context) {
     const turquesa = Color(0xFF2EB79B);
 
-    // ignore: deprecated_member_use
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.pushReplacement(
-          context,
+    return PopScope(
+      canPop: false,
+      // ✅ nuevo callback sin deprecations
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const CuentaTutor()),
         );
-        return false;
       },
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -75,8 +84,7 @@ class _CambiarContrasenaTutorState extends State<CambiarContrasenaTutor> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
+              Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (_) => const CuentaTutor()),
               );
             },
@@ -87,49 +95,74 @@ class _CambiarContrasenaTutorState extends State<CambiarContrasenaTutor> {
           ),
           centerTitle: true,
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Center(
-                child: Image.asset(
-                  "assets/images/cambiar_contraseña.png", // renombrado sin ñ
-                  width: 200,
-                  height: 200,
-                ),
-              ),
-              const SizedBox(height: 30),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  hintText: "Introduzca la nueva contraseña",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _cambiarContrasena,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: turquesa,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+        body: Center(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 8),
+                    Image.asset(
+                      "assets/images/cambiar_contraseña.png",
+                      width: 200,
+                      height: 200,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.lock_reset,
+                        size: 120,
+                        color: Colors.black26,
+                      ),
                     ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    "Continuar",
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Introduce tu nueva contraseña para actualizar tu cuenta.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 18),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: "Introduzca la nueva contraseña",
+                        alignLabelWithHint: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _cambiarContrasena,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: turquesa,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          "Continuar",
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

@@ -1,7 +1,7 @@
 // archivo: conecta_tutor.dart
 import 'package:app_prueba/Pantallas/bienvenido.dart';
 import 'package:flutter/material.dart';
-import 'package:app_prueba/Pantallas/tutor2.dart'; // 👈 Importa la pantalla siguiente
+import 'package:app_prueba/Pantallas/tutor2.dart'; //
 
 class ConectaTutor extends StatefulWidget {
   const ConectaTutor({super.key});
@@ -45,8 +45,8 @@ class _ConectaTutorState extends State<ConectaTutor> {
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        width: 370,
-                        height: 370,
+                        width: 300,
+                        height: 300,
                         decoration: const BoxDecoration(
                           image: DecorationImage(
                             image: AssetImage('assets/images/tutor_fondo1.png'),
@@ -56,8 +56,8 @@ class _ConectaTutorState extends State<ConectaTutor> {
                       ),
                       Image.asset(
                         'assets/images/tutor1.png',
-                        width: 400,
-                        height: 400,
+                        width: 350,
+                        height: 350,
                         fit: BoxFit.contain,
                       ),
                     ],
@@ -68,7 +68,7 @@ class _ConectaTutorState extends State<ConectaTutor> {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 30.0),
                     child: Text(
-                      'Como tutor, recibirás alertas inmediatas ante cualquier señal "SOS", SafeWalk te mantiene informado para que puedas reaccionar de forma rápida y brindar apoyo cuando más se necesita.',
+                      'Como contacto de emergencia, recibirás alertas inmediatas ante cualquier señal "SOS"',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
@@ -111,8 +111,7 @@ class _ConectaTutorState extends State<ConectaTutor> {
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const Tutor2()), // 👈 Cambiado
+                        MaterialPageRoute(builder: (context) => const Tutor2()),
                       );
                     },
                     style: ElevatedButton.styleFrom(
