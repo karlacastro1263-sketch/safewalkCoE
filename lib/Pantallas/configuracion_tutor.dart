@@ -10,33 +10,41 @@ class ConfiguracionTutor extends StatefulWidget {
 }
 
 class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
-  int _selectedIndex = 0;
-  bool _isDark = false; // ← modo oscuro local
+  // Tab seleccionado: 2 = Config (esta pantalla)
+  int _selectedIndex = 2;
+
+  // Modo oscuro local (luna/sol)
+  bool _isDark = false;
 
   void _onItemTapped(int index) {
+    if (index == _selectedIndex)
+      return; // Evita navegar si ya está seleccionado
     setState(() => _selectedIndex = index);
 
-    // Cuenta
+    // Home/Cuenta
     if (index == 0) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const CuentaTutor()),
+        MaterialPageRoute(builder: (_) => const CuentaTutor()),
       );
+      return;
     }
 
     // Mapa
     if (index == 1) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MapaScreen()),
+        MaterialPageRoute(builder: (_) => const MapaScreen()),
       );
+      return;
     }
-    // Config (index == 2) -> sin navegación por ahora
+
+    // Config (index == 2) -> ya estamos aquí
   }
 
   @override
   Widget build(BuildContext context) {
-    // Colores dependientes del modo
+    // Paleta dependiente del modo
     final Color bg = _isDark ? const Color(0xFF121212) : Colors.white;
     final Color text = _isDark ? Colors.white : Colors.black87;
     final Color icon = _isDark ? Colors.white : Colors.black;
@@ -48,7 +56,7 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
       body: SafeArea(
         child: Stack(
           children: [
-            // Botón de luna/sol arriba-derecha
+            // Botón luna/sol arriba a la derecha
             Positioned(
               top: 0,
               right: 0,
@@ -63,16 +71,14 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
               ),
             ),
 
-            // Contenido principal centrado
+            // Contenido
             Center(
               child: SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 24,
-                    ),
+                        horizontal: 20, vertical: 24),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -94,7 +100,6 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
                             width: 180,
                             height: 180,
                             fit: BoxFit.contain,
-                            // Evita crash si el asset no existe
                             errorBuilder: (_, __, ___) => Icon(
                               Icons.settings,
                               size: 120,
@@ -104,7 +109,7 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
                         ),
                         const SizedBox(height: 26),
 
-                        // Lista centrada (sin tarjetas/cuadrados)
+                        // Lista de opciones
                         ListView(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
@@ -118,16 +123,13 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
                                   color: text,
                                 ),
                               ),
-                              trailing: Icon(
-                                Icons.arrow_forward_ios,
-                                size: 18,
-                                color: text,
-                              ),
+                              trailing: Icon(Icons.arrow_forward_ios,
+                                  size: 18, color: text),
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const CuentaTutor(),
+                                    builder: (_) => const CuentaTutor(),
                                   ),
                                 );
                               },
@@ -144,6 +146,7 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
                               ),
                               trailing: Icon(Icons.arrow_forward_ios,
                                   size: 18, color: text),
+                              onTap: () {},
                             ),
                             Divider(height: 1, color: divider),
                             ListTile(
@@ -157,6 +160,7 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
                               ),
                               trailing: Icon(Icons.arrow_forward_ios,
                                   size: 18, color: text),
+                              onTap: () {},
                             ),
                           ],
                         ),
@@ -171,7 +175,8 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
           ],
         ),
       ),
-      // Barra inferior con colores adecuados al tema local
+
+      // BottomNavigationBar
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: bg,
         type: BottomNavigationBarType.fixed,
@@ -179,10 +184,12 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
         onTap: _onItemTapped,
         selectedItemColor: primary,
         unselectedItemColor: _isDark ? Colors.white70 : Colors.black54,
+        showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Cuenta",
+            icon: Icon(Icons.house_outlined),
+            activeIcon: Icon(Icons.house),
+            label: "Home",
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),

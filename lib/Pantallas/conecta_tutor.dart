@@ -1,7 +1,7 @@
 // archivo: conecta_tutor.dart
 import 'package:app_prueba/Pantallas/bienvenido.dart';
 import 'package:flutter/material.dart';
-import 'package:app_prueba/Pantallas/tutor2.dart'; //
+import 'package:app_prueba/Pantallas/bienvenido_tutor.dart'; //
 
 class ConectaTutor extends StatefulWidget {
   const ConectaTutor({super.key});
@@ -111,7 +111,7 @@ class _ConectaTutorState extends State<ConectaTutor> {
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => const Tutor2()),
+                        MaterialPageRoute(builder: (context) => const BienvenidoTutor()),
                       );
                     },
                     style: ElevatedButton.styleFrom(
