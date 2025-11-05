@@ -3,19 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
+// Ajusta estos imports a tus archivos reales
+import 'cuenta_tutor.dart';
+import 'configuracion_tutor.dart';
+
 class MapaScreen extends StatefulWidget {
   const MapaScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _MapaScreenState createState() => _MapaScreenState();
+  State<MapaScreen> createState() => _MapaScreenState();
 }
 
 class _MapaScreenState extends State<MapaScreen> {
-  late GoogleMapController mapController;
+  GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
-  late Position _currentPosition;
-  late StreamSubscription<Position> positionStream;
+  StreamSubscription<Position>? _positionStream;
+  int _selectedIndex = 1; // Mapa seleccionado
 
   @override
   void initState() {
@@ -23,88 +26,122 @@ class _MapaScreenState extends State<MapaScreen> {
     _determinePosition();
   }
 
-  // Método para obtener la ubicación inicial y solicitar permisos
-  Future<void> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+  // --- Bottom nav ---
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex) return;
 
-    // Verificar si los servicios de ubicación están habilitados
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    setState(() => _selectedIndex = index);
+
+    if (index == 0) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const CuentaTutor()),
+      );
+    } else if (index == 2) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const ConfiguracionTutor()),
+      );
+    }
+  }
+
+  // --- Geolocalización y stream ---
+  Future<void> _determinePosition() async {
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      return Future.error('El servicio de ubicación está desactivado.');
+      // Puedes mostrar un SnackBar si quieres
+      return;
     }
 
-    // Verificar permisos de ubicación
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return Future.error('Permisos de ubicación denegados');
+        return;
       }
     }
-
     if (permission == LocationPermission.deniedForever) {
-      return Future.error('Permisos de ubicación denegados permanentemente');
+      return;
     }
 
-    // Obtener la ubicación actual
-    _currentPosition = await Geolocator.getCurrentPosition();
-    _updateMarker(_currentPosition);
+    // Posición inicial
+    final current = await Geolocator.getCurrentPosition();
+    _updateMarkerAndCamera(current);
 
-    // Comienza a escuchar la ubicación en tiempo real
-    final LocationSettings locationSettings = LocationSettings(
+    // Seguir movimientos (ajusta distanceFilter a tu gusto)
+    const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 100,  // Solo actualiza la posición si el dispositivo se mueve más de 100 metros
+      distanceFilter: 100,
     );
 
-    positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position? position) {
-        if (position != null) {
-          _updateMarker(position);
-        }
-      },
-    );
+    _positionStream = Geolocator.getPositionStream(
+      locationSettings: locationSettings,
+    ).listen((pos) {
+      if (!mounted) return;
+      _updateMarkerAndCamera(pos);
+    });
   }
 
-  // Actualizar el marcador en el mapa
-  void _updateMarker(Position position) {
-    // Muestra las coordenadas en consola
-
-    final Marker marker = Marker(
-      markerId: MarkerId("userLocation"),
+  void _updateMarkerAndCamera(Position position) {
+    final marker = Marker(
+      markerId: const MarkerId('userLocation'),
       position: LatLng(position.latitude, position.longitude),
     );
 
     setState(() {
-      _markers.add(marker);
+      _markers
+        ..clear()
+        ..add(marker);
     });
 
-    mapController.animateCamera(CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)));
+    // Mover cámara cuando el mapa esté listo
+    if (_mapController != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(position.latitude, position.longitude),
+        ),
+      );
+    }
   }
 
   @override
   void dispose() {
-    // Detener la escucha cuando el widget se destruya
-    positionStream.cancel();
+    _positionStream?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Mapa en tiempo real")),
+      // Sin flecha atrás
+      appBar: AppBar(
+        title: const Text('Mapa'),
+        automaticallyImplyLeading: false,
+      ),
       body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: LatLng(-33.517666, -70.797081),  // Coordenada de Chile (Santiago)
-          zoom: 14.0,  // Ajusta el nivel de zoom según lo que desees ver
+        initialCameraPosition: const CameraPosition(
+          target: LatLng(-33.517666, -70.797081), // Santiago, CL
+          zoom: 14.0,
         ),
+        myLocationEnabled: true,
+        myLocationButtonEnabled: true,
         markers: _markers,
-        onMapCreated: (GoogleMapController controller) {
-          mapController = controller;
-        },
-        myLocationEnabled: true, // Habilita la ubicación del usuario
-        myLocationButtonEnabled: true, // Habilita el botón para centrarse en la ubicación
+        onMapCreated: (controller) => _mapController = controller,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.teal,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Cuenta'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Mapa'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Config'),
+        ],
       ),
     );
+    // Fin Scaffold
   }
 }
