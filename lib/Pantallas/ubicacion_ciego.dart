@@ -60,7 +60,7 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
           LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 50);
       _positionSub = Geolocator.getPositionStream(locationSettings: settings)
           .listen((pos) {
-        if (!mounted || pos == null) return;
+        if (!mounted) return;
         _updateLocation(LatLng(pos.latitude, pos.longitude));
       });
     } catch (_) {}
@@ -96,8 +96,9 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
         if ((p.street ?? '').isNotEmpty) parts.add(p.street!);
         if ((p.subLocality ?? '').isNotEmpty) parts.add(p.subLocality!);
         if ((p.locality ?? '').isNotEmpty) parts.add(p.locality!);
-        if ((p.administrativeArea ?? '').isNotEmpty)
+        if ((p.administrativeArea ?? '').isNotEmpty) {
           parts.add(p.administrativeArea!);
+        }
         setState(() {
           _direccion =
               parts.isEmpty ? 'Dirección no disponible' : parts.join(', ');
@@ -149,7 +150,6 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Mapa a TODO el ancho, centrado visualmente y más alto
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: SizedBox(
@@ -302,7 +302,7 @@ class _FullscreenMapPageState extends State<_FullscreenMapPage> {
       );
       _sub = Geolocator.getPositionStream(locationSettings: settings)
           .listen((pos) {
-        if (!mounted || pos == null) return;
+        if (!mounted) return;
         final here = LatLng(pos.latitude, pos.longitude);
         setState(() => _liveLatLng = here);
         _controller?.animateCamera(CameraUpdate.newLatLng(here));

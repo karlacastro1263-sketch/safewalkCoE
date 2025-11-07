@@ -9,6 +9,7 @@ class MapaScreen extends StatefulWidget {
   const MapaScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _MapaScreenState createState() => _MapaScreenState();
 }
 
@@ -256,7 +257,7 @@ class _FullscreenMapPageState extends State<_FullscreenMapPage> {
           LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 50);
       _sub = Geolocator.getPositionStream(locationSettings: settings)
           .listen((pos) {
-        if (!mounted || pos == null) return;
+        if (!mounted) return;
         final here = LatLng(pos.latitude, pos.longitude);
 
         // Actualiza marcador principal
