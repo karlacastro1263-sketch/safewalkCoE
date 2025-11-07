@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'cuenta_tutor.dart';
-import 'mapa_screen.dart';
 import 'bienvenido_tutor.dart';
 
 class ConfiguracionTutor extends StatefulWidget {
@@ -28,15 +27,6 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const BienvenidoTutor()),
-      );
-      return;
-    }
-
-    // Mapa
-    if (index == 1) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MapaScreen()),
       );
       return;
     }
