@@ -37,13 +37,11 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
 
   Future<void> _initLocation() async {
     try {
-      // Si recibes coordenadas externas, úsalas
       if (widget.lat != null && widget.lng != null) {
         _updateLocation(LatLng(widget.lat!, widget.lng!));
         return;
       }
 
-      // Permisos
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return;
 
@@ -54,24 +52,18 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
       }
       if (perm == LocationPermission.deniedForever) return;
 
-      // Posición inicial
       final p = await Geolocator.getCurrentPosition();
       if (!mounted) return;
       _updateLocation(LatLng(p.latitude, p.longitude));
 
-      // Stream (cada 50 m)
       const settings =
           LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 50);
-      _positionSub =
-          Geolocator.getPositionStream(locationSettings: settings).listen(
-        (pos) {
-          if (!mounted) return;
-          _updateLocation(LatLng(pos.latitude, pos.longitude));
-        },
-      );
-    } catch (_) {
-      // Silencioso para evitar romper la UI
-    }
+      _positionSub = Geolocator.getPositionStream(locationSettings: settings)
+          .listen((pos) {
+        if (!mounted || pos == null) return;
+        _updateLocation(LatLng(pos.latitude, pos.longitude));
+      });
+    } catch (_) {}
   }
 
   Future<void> _updateLocation(LatLng latLng) async {
@@ -91,17 +83,12 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
     });
 
     if (_mapController != null) {
-      await _mapController!.animateCamera(
-        CameraUpdate.newLatLng(latLng),
-      );
+      await _mapController!.animateCamera(CameraUpdate.newLatLng(latLng));
     }
 
-    // Reverse geocoding
     try {
       final placemarks = await geocoding.placemarkFromCoordinates(
-        latLng.latitude,
-        latLng.longitude,
-      );
+          latLng.latitude, latLng.longitude);
       if (!mounted) return;
       if (placemarks.isNotEmpty) {
         final p = placemarks.first;
@@ -109,17 +96,14 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
         if ((p.street ?? '').isNotEmpty) parts.add(p.street!);
         if ((p.subLocality ?? '').isNotEmpty) parts.add(p.subLocality!);
         if ((p.locality ?? '').isNotEmpty) parts.add(p.locality!);
-        if ((p.administrativeArea ?? '').isNotEmpty) {
+        if ((p.administrativeArea ?? '').isNotEmpty)
           parts.add(p.administrativeArea!);
-        }
         setState(() {
           _direccion =
               parts.isEmpty ? 'Dirección no disponible' : parts.join(', ');
         });
       }
-    } catch (_) {
-      // Ignorar errores de geocodificación
-    }
+    } catch (_) {}
   }
 
   @override
@@ -128,7 +112,6 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
     super.dispose();
   }
 
-  // Navegación inferior
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
     setState(() => _selectedIndex = index);
@@ -148,8 +131,11 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
 
   @override
   Widget build(BuildContext context) {
+    final media = MediaQuery.of(context).size;
+    // Un poco más largo: 0.68 * ancho del teléfono
+    final double collapsedHeight = media.width * 0.68;
+
     return Scaffold(
-      // Sin flecha atrás
       appBar: AppBar(
         automaticallyImplyLeading: false,
         centerTitle: true,
@@ -161,17 +147,19 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Mapa cuadrado con bordes redondeados
+            // Mapa a TODO el ancho, centrado visualmente y más alto
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: AspectRatio(
-                aspectRatio: 1,
+              child: SizedBox(
+                height: collapsedHeight,
+                width: double.infinity,
                 child: Stack(
                   children: [
                     GoogleMap(
                       initialCameraPosition: const CameraPosition(
-                        target: LatLng(-33.447487, -70.673676), // Fallback: Santiago
+                        target: LatLng(-33.447487, -70.673676), // Santiago
                         zoom: 14,
                       ),
                       onMapCreated: (c) => _mapController = c,
@@ -180,6 +168,21 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
                       myLocationButtonEnabled: false,
                       zoomControlsEnabled: false,
                       compassEnabled: false,
+                      // Tap → pantalla completa
+                      onTap: (_) async {
+                        await Navigator.of(context).push(
+                          PageRouteBuilder(
+                            opaque: true,
+                            barrierColor: Colors.black,
+                            pageBuilder: (_, __, ___) => _FullscreenMapPage(
+                              currentLatLng: _currentLatLng,
+                              markers: _markers,
+                            ),
+                            transitionsBuilder: (_, anim, __, child) =>
+                                FadeTransition(opacity: anim, child: child),
+                          ),
+                        );
+                      },
                     ),
                     // Botón "centrar"
                     Positioned(
@@ -192,7 +195,8 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
                         child: IconButton(
                           icon: const Icon(Icons.my_location),
                           onPressed: () {
-                            if (_currentLatLng != null && _mapController != null) {
+                            if (_currentLatLng != null &&
+                                _mapController != null) {
                               _mapController!.animateCamera(
                                 CameraUpdate.newLatLng(_currentLatLng!),
                               );
@@ -205,24 +209,24 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
                 ),
               ),
             ),
-            const SizedBox(height: 14),
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Dirección:',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-              ),
+
+            // Dirección justo debajo del mapa
+            const SizedBox(height: 10),
+            const Text(
+              'Dirección:',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+              textAlign: TextAlign.left,
             ),
             const SizedBox(height: 6),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                _direccion,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.black54, fontSize: 14),
-              ),
+            Text(
+              _direccion,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.black54, fontSize: 14),
+              textAlign: TextAlign.left,
             ),
+
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -244,6 +248,127 @@ class _UbicacionCiegoState extends State<UbicacionCiego> {
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Config',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Página de mapa a pantalla completa
+class _FullscreenMapPage extends StatefulWidget {
+  const _FullscreenMapPage({
+    required this.currentLatLng,
+    required this.markers,
+  });
+
+  final LatLng? currentLatLng;
+  final Set<Marker> markers;
+
+  @override
+  State<_FullscreenMapPage> createState() => _FullscreenMapPageState();
+}
+
+class _FullscreenMapPageState extends State<_FullscreenMapPage> {
+  GoogleMapController? _controller;
+  StreamSubscription<Position>? _sub;
+
+  final LatLng _fallback = const LatLng(-33.447487, -70.673676); // Santiago
+  LatLng? _liveLatLng;
+  late final Set<Marker> _markers = Set<Marker>.from(widget.markers);
+
+  @override
+  void initState() {
+    super.initState();
+    _liveLatLng = widget.currentLatLng;
+    _listenLocation();
+  }
+
+  void _listenLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+        if (perm == LocationPermission.denied) return;
+      }
+      if (perm == LocationPermission.deniedForever) return;
+
+      const settings = LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 25,
+      );
+      _sub = Geolocator.getPositionStream(locationSettings: settings)
+          .listen((pos) {
+        if (!mounted || pos == null) return;
+        final here = LatLng(pos.latitude, pos.longitude);
+        setState(() => _liveLatLng = here);
+        _controller?.animateCamera(CameraUpdate.newLatLng(here));
+      });
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final LatLng initial = _liveLatLng ?? widget.currentLatLng ?? _fallback;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(target: initial, zoom: 16),
+            onMapCreated: (c) => _controller = c,
+            markers: _markers,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
+            compassEnabled: true,
+          ),
+          // Cerrar (arriba-izquierda)
+          Positioned(
+            top: 12,
+            left: 12,
+            child: SafeArea(
+              child: Material(
+                // ignore: deprecated_member_use
+                color: Colors.black.withOpacity(0.35),
+                shape: const CircleBorder(),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'Cerrar',
+                ),
+              ),
+            ),
+          ),
+          // Centrar en mí (abajo-derecha)
+          Positioned(
+            right: 16,
+            bottom: 24,
+            child: SafeArea(
+              child: Material(
+                color: Colors.white,
+                elevation: 3,
+                shape: const CircleBorder(),
+                child: IconButton(
+                  icon: const Icon(Icons.my_location),
+                  onPressed: () {
+                    final target =
+                        _liveLatLng ?? widget.currentLatLng ?? _fallback;
+                    _controller?.animateCamera(CameraUpdate.newLatLng(target));
+                  },
+                ),
+              ),
+            ),
           ),
         ],
       ),

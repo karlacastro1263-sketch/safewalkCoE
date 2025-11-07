@@ -92,7 +92,6 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // ↓ Baja todo un poco
                         const SizedBox(height: 16),
 
                         Text(
@@ -119,8 +118,8 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                         Center(
                           child: Image.asset(
                             'assets/images/sos.png',
-                            width: 220,
-                            height: 220,
+                            width: 380,
+                            height: 380,
                             fit: BoxFit.contain,
                             errorBuilder: (_, __, ___) => Icon(
                               Icons.person_pin_circle,
@@ -137,14 +136,17 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                         SwitchListTile.adaptive(
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 4),
-                          title: Text('Recibir llamadas SOS',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: text)),
+                          title: Text(
+                            'Recibir llamadas SOS',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: text),
+                          ),
                           subtitle: Text(
-                              'Permite llamadas directas al activar una emergencia.',
-                              style: TextStyle(fontSize: 13, color: subtext)),
+                            'Permite llamadas directas al activar una emergencia.',
+                            style: TextStyle(fontSize: 13, color: subtext),
+                          ),
                           secondary: Icon(Icons.call, color: text),
                           // ignore: deprecated_member_use
                           activeColor: _primary,
@@ -160,14 +162,17 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                         SwitchListTile.adaptive(
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 4),
-                          title: Text('Recibir mensajes de SOS',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: text)),
+                          title: Text(
+                            'Recibir mensajes de SOS',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: text),
+                          ),
                           subtitle: Text(
-                              'Recibe notificaciones con ubicación y detalles.',
-                              style: TextStyle(fontSize: 13, color: subtext)),
+                            'Recibe notificaciones con ubicación y detalles.',
+                            style: TextStyle(fontSize: 13, color: subtext),
+                          ),
                           secondary: Icon(Icons.sms, color: text),
                           // ignore: deprecated_member_use
                           activeColor: _primary,
@@ -178,41 +183,7 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                           },
                         ),
 
-                        // ↓ Baja el botón un poco más
-                        const SizedBox(height: 36),
-
-                        // Continuar -> UbicacionCiego
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const UbicacionCiego()),
-                              );
-                            },
-                            child: const Text(
-                              'Continuar',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Podrás cambiar estas opciones cuando quieras en Configuración.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12.5, color: subtext),
-                        ),
+                        // (Texto final eliminado)
                       ],
                     ),
                   ),
