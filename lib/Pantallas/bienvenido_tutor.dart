@@ -52,7 +52,6 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
     setState(() => _selectedIndex = index);
 
     if (index == 1) {
-      // Mapa -> UbicacionCiego
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const UbicacionCiego()),
@@ -93,6 +92,9 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        // ↓ Baja todo un poco
+                        const SizedBox(height: 16),
+
                         Text(
                           saludo,
                           textAlign: TextAlign.center,
@@ -111,33 +113,24 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
 
-                        // Avatar / ilustración
-                        Container(
-                          width: 180,
-                          height: 180,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            // ignore: deprecated_member_use
-                            color: _primary.withOpacity(.12),
-                            // ignore: deprecated_member_use
-                            border:
-                                // ignore: deprecated_member_use
-                                Border.all(color: _primary.withOpacity(.35)),
-                          ),
-                          clipBehavior: Clip.antiAlias,
+                        // Imagen centrada SIN círculo
+                        Center(
                           child: Image.asset(
-                            'assets/images/welcome_tutor.png',
+                            'assets/images/sos.png',
+                            width: 220,
+                            height: 220,
                             fit: BoxFit.contain,
                             errorBuilder: (_, __, ___) => Icon(
                               Icons.person_pin_circle,
-                              size: 120,
+                              size: 160,
                               // ignore: deprecated_member_use
                               color: _primary.withOpacity(.8),
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 28),
 
                         // Switches
@@ -185,7 +178,8 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                           },
                         ),
 
-                        const SizedBox(height: 24),
+                        // ↓ Baja el botón un poco más
+                        const SizedBox(height: 36),
 
                         // Continuar -> UbicacionCiego
                         SizedBox(
@@ -213,7 +207,7 @@ class _BienvenidoTutorState extends State<BienvenidoTutor> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
                           'Podrás cambiar estas opciones cuando quieras en Configuración.',
                           textAlign: TextAlign.center,
