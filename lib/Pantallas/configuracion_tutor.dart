@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'cuenta_tutor.dart';
 import 'mapa_screen.dart';
+import 'bienvenido_tutor.dart';
 
 class ConfiguracionTutor extends StatefulWidget {
   const ConfiguracionTutor({super.key});
@@ -10,22 +12,22 @@ class ConfiguracionTutor extends StatefulWidget {
 }
 
 class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
-  // Tab seleccionado: 2 = Config (esta pantalla)
   int _selectedIndex = 2;
 
   // Modo oscuro local (luna/sol)
   bool _isDark = false;
 
   void _onItemTapped(int index) {
-    if (index == _selectedIndex)
+    if (index == _selectedIndex) {
       return; // Evita navegar si ya está seleccionado
+    }
     setState(() => _selectedIndex = index);
 
-    // Home/Cuenta
+    // Home -> BienvenidoTutor
     if (index == 0) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const CuentaTutor()),
+        MaterialPageRoute(builder: (_) => const BienvenidoTutor()),
       );
       return;
     }
@@ -129,8 +131,7 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const CuentaTutor(),
-                                  ),
+                                      builder: (_) => const CuentaTutor()),
                                 );
                               },
                             ),

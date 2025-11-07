@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'configuracion_tutor.dart';
+
 class MapaScreen extends StatefulWidget {
   const MapaScreen({super.key});
 
@@ -12,10 +14,10 @@ class MapaScreen extends StatefulWidget {
 }
 
 class _MapaScreenState extends State<MapaScreen> {
-  late GoogleMapController mapController;
+  GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
-  late Position _currentPosition;
-  late StreamSubscription<Position> positionStream;
+  Position? _currentPosition;
+  StreamSubscription<Position>? _positionStream;
 
   @override
   void initState() {
@@ -23,86 +25,115 @@ class _MapaScreenState extends State<MapaScreen> {
     _determinePosition();
   }
 
-  // Método para obtener la ubicación inicial y solicitar permisos
+  // Obtener ubicación inicial + permisos
   Future<void> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
 
-    // Verificar si los servicios de ubicación están habilitados
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('El servicio de ubicación está desactivado.');
-    }
-
-    // Verificar permisos de ubicación
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Permisos de ubicación denegados');
-      }
+      if (permission == LocationPermission.denied) return;
     }
+    if (permission == LocationPermission.deniedForever) return;
 
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error('Permisos de ubicación denegados permanentemente');
-    }
-
-    // Obtener la ubicación actual
+    // Ubicación inicial
     _currentPosition = await Geolocator.getCurrentPosition();
-    _updateMarker(_currentPosition);
+    _updateMarker(_currentPosition!);
 
-    // Comienza a escuchar la ubicación en tiempo real
-    final LocationSettings locationSettings = LocationSettings(
+    // Stream (actualiza si se mueve >100 m)
+    const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 100,  // Solo actualiza la posición si el dispositivo se mueve más de 100 metros
+      distanceFilter: 100,
     );
 
-    positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position? position) {
-        if (position != null) {
-          _updateMarker(position);
-        }
-      },
-    );
+    _positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position? position) {
+      if (position != null) {
+        _currentPosition = position;
+        _updateMarker(position);
+      }
+    });
   }
 
-  // Actualizar el marcador en el mapa
+  // Actualizar marcador y cámara
   void _updateMarker(Position position) {
-    // Muestra las coordenadas en consola
-
-    final Marker marker = Marker(
-      markerId: MarkerId("userLocation"),
+    final marker = Marker(
+      markerId: const MarkerId("userLocation"),
       position: LatLng(position.latitude, position.longitude),
     );
 
     setState(() {
-      _markers.add(marker);
+      _markers
+        ..clear()
+        ..add(marker);
     });
 
-    mapController.animateCamera(CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)));
+    if (_mapController != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(position.latitude, position.longitude),
+        ),
+      );
+    }
   }
 
   @override
   void dispose() {
-    // Detener la escucha cuando el widget se destruya
-    positionStream.cancel();
+    _positionStream?.cancel();
     super.dispose();
+  }
+
+  void _goToConfig() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const ConfiguracionTutor()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Mapa en tiempo real")),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: LatLng(-33.517666, -70.797081),  // Coordenada de Chile (Santiago)
-          zoom: 14.0,  // Ajusta el nivel de zoom según lo que desees ver
+    // ignore: deprecated_member_use
+    return WillPopScope(
+      // Captura el "atrás" físico de Android
+      onWillPop: () async {
+        _goToConfig();
+        return false; // evitamos el pop por defecto
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Mapa en tiempo real"),
+          // Flecha atrás personalizada que navega a Configuración
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new),
+            onPressed: _goToConfig,
+          ),
+          centerTitle: true,
         ),
-        markers: _markers,
-        onMapCreated: (GoogleMapController controller) {
-          mapController = controller;
-        },
-        myLocationButtonEnabled: true, // Habilita el botón para centrarse en la ubicación
+        body: GoogleMap(
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(-33.517666, -70.797081), // Santiago (fallback)
+            zoom: 14.0,
+          ),
+          markers: _markers,
+          onMapCreated: (GoogleMapController controller) {
+            _mapController = controller;
+            // Si ya teníamos posición, centra de inmediato
+            if (_currentPosition != null) {
+              _mapController!.moveCamera(
+                CameraUpdate.newLatLng(
+                  LatLng(
+                    _currentPosition!.latitude,
+                    _currentPosition!.longitude,
+                  ),
+                ),
+              );
+            }
+          },
+          myLocationEnabled: true, // punto azul del usuario
+          myLocationButtonEnabled: true, // botón para centrar
+        ),
       ),
     );
   }
