@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'cuenta_tutor.dart';
 import 'bienvenido_tutor.dart';
+import 'ubicacion_ciego.dart'; // ← nuevo import
 
 class ConfiguracionTutor extends StatefulWidget {
   const ConfiguracionTutor({super.key});
@@ -27,6 +26,15 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const BienvenidoTutor()),
+      );
+      return;
+    }
+
+    // Mapa -> UbicacionCiego
+    if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const UbicacionCiego()),
       );
       return;
     }
@@ -118,11 +126,6 @@ class _ConfiguracionTutorState extends State<ConfiguracionTutor> {
                               trailing: Icon(Icons.arrow_forward_ios,
                                   size: 18, color: text),
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => const CuentaTutor()),
-                                );
                               },
                             ),
                             Divider(height: 1, color: divider),
